@@ -6,3 +6,17 @@ coverage/
 *.log
 .env*
 !.env.example
+
+# Firebase credentials — never commit these
+serviceAccountKey.json
+firebase-applet-config.json
+
+# Local dev data
+local_orders.json
+
+# Temporary debug scripts
+tmp_*.js
+tmp_*.cjs
+
+# Dev scratch workspace
+scratch/

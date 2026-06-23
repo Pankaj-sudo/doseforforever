@@ -37,5 +37,44 @@
     ],
     "receiptFileName": "",
     "receiptFileDataUrl": ""
+  },
+  "PT-2KWAZO": {
+    "id": "PT-2KWAZO",
+    "order_id": "PT-2KWAZO",
+    "orderId": "PT-2KWAZO",
+    "customer_name": "QA Tester",
+    "customer_email": "qa@example.com",
+    "customer_phone": "09171234567",
+    "delivery_mode": "lalamove",
+    "shipping_address": "",
+    "payment_method": "GCash",
+    "payment_proof_url": "",
+    "subtotal": 300,
+    "shipping_fee": 50,
+    "total_amount": 350,
+    "status": "Pending",
+    "created_at": "2026-06-23T03:40:34.989Z",
+    "updated_at": "2026-06-23T03:40:34.989Z",
+    "createdAt": "2026-06-23T03:40:34.989Z",
+    "updatedAt": "2026-06-23T03:40:34.989Z",
+    "items": [
+      {
+        "id": 1,
+        "name": "Test Product",
+        "qty": 2,
+        "price": 150
+      }
+    ],
+    "statusHistory": [
+      {
+        "id": "hist-0yroz",
+        "order_id": "PT-2KWAZO",
+        "status": "Pending",
+        "updated_by": "system",
+        "created_at": "2026-06-23T03:40:34.989Z"
+      }
+    ],
+    "receiptFileName": "",
+    "receiptFileDataUrl": ""
   }
 }

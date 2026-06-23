@@ -8,8 +8,10 @@ import * as admin from "firebase-admin";
 
 dotenv.config();
 
+const MERCHANT_EMAIL = process.env.MERCHANT_EMAIL || 'Pankaj.ydv707@gmail.com';
+
 const firebaseConfigPath = path.join(process.cwd(), 'firebase-applet-config.json');
-  const serviceAccountPath = path.join(process.cwd(), 'serviceAccountKey.json');
+const serviceAccountPath = path.join(process.cwd(), 'serviceAccountKey.json');
 
 function loadFirebaseConfig() {
   if (fs.existsSync(firebaseConfigPath)) {
@@ -46,11 +48,18 @@ async function startServer() {
           admin.initializeApp();
         } else {
           const sa = JSON.parse(fs.readFileSync(serviceAccountPath, 'utf8'));
-          admin.initializeApp({ credential: admin.credential.cert(sa) });
+          admin.initializeApp({ credential: admin.credential.cert(sa), projectId: sa.project_id });
         }
       }
-      adminDb = admin.firestore();
-      console.log('[server.ts] Firebase Admin SDK initialized for server writes.');
+      const candidateDb = admin.firestore();
+      try {
+        await candidateDb.collection('orders').limit(1).get();
+        adminDb = candidateDb;
+        console.log('[server.ts] Firebase Admin SDK initialized for server writes.');
+      } catch (authErr) {
+        console.warn('[server.ts] Firebase Admin SDK Firestore auth test failed:', authErr?.message || authErr);
+        adminDb = null;
+      }
     }
   } catch (adminErr) {
     console.warn('[server.ts] Firebase Admin SDK not available or failed to init:', adminErr?.message || adminErr);
@@ -529,7 +538,7 @@ Receipt Attached Name: ${receiptFileName || "no_file.png"}
       // Mail to developer & order administrator
       const mailOptionsMerchant = {
         from: `"Dose of Forever Alerts" <${smtpUser}>`,
-        to: "Pankaj.ydv707@gmail.com",
+        to: MERCHANT_EMAIL,
         subject: `🚨 [NEW ORDER] ID: ${orderId} - By: ${researcherName}`,
         text: `New research reservation ID: ${orderId}. Researcher: ${researcherName}, Mobile: ${researcherMobile}, Email: ${researcherEmail}. Total: ₱${totalAmount.toLocaleString()}. Address: ${deliveryAddress}.`,
         html: htmlBody,
@@ -752,7 +761,6 @@ ${textBody}
         if (typeof adminDb !== 'undefined' && adminDb) {
           const snap = await adminDb.collection('orders').doc(orderId).get();
           if (!snap.exists) {
-            // Try local fallback
             const local = readLocalOrders();
             if (!local[orderId]) {
               return res.status(404).json({ success: false, error: "Order not found in Firestore or local store." });
@@ -762,27 +770,11 @@ ${textBody}
             order = snap.data();
           }
         } else {
-          const { initializeApp: initFbApp, getApp, getApps } = await import("firebase/app");
-          const { getFirestore: getFbFirestore, doc, getDoc } = await import("firebase/firestore");
-          let app;
-          if (getApps().length === 0) {
-            const firebaseConfig = loadFirebaseConfig();
-            app = initFbApp(firebaseConfig);
-          } else {
-            app = getApp();
+          const local = readLocalOrders();
+          if (!local[orderId]) {
+            return res.status(404).json({ success: false, error: "Order not found in local store." });
           }
-          const firestoreDb = getFbFirestore(app);
-          const orderRef = doc(firestoreDb, "orders", orderId);
-          const snap = await getDoc(orderRef);
-          if (!snap.exists()) {
-            // Try local fallback
-            const local = readLocalOrders();
-            if (!local[orderId]) {
-              return res.status(404).json({ success: false, error: "Order not found in Firestore or local store." });
-            }
-            order = local[orderId];
-          }
-          order = order || snap.data();
+          order = local[orderId];
         }
 
         const smtpHost = process.env.SMTP_HOST || "smtp.gmail.com";
@@ -819,7 +811,7 @@ ${textBody}
 
         const mailOptionsMerchant = {
           from: `"Dose of Forever Alerts" <${smtpUser}>`,
-          to: "Pankaj.ydv707@gmail.com",
+          to: MERCHANT_EMAIL,
           subject: `🔁 [RESEND] Order ${orderId} - Notification Resent`,
           html: htmlBody
         };
@@ -1023,7 +1015,7 @@ ${textBody}
 
        const mailOptionsAdmin = {
          from: `"Dose Of Forever Consultation Alerts" <${smtpUser}>`,
-         to: "Pankaj.ydv707@gmail.com",
+         to: MERCHANT_EMAIL,
          subject: `🚨 [NEW CONSULTATION] Ref: ${consultationId} - By: ${fullName}`,
          text: `Consultation request ID: ${consultationId} received. Patient: ${fullName}, Mobile: ${mobileNumber}, Email: ${email}. Medical concern: ${medicalConcern}. Recommended: ${recommendedPeptides ? recommendedPeptides.join(", ") : ""}.`,
          html: htmlBody,
