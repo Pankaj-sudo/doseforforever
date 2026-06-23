@@ -1,0 +1,41 @@
+{
+  "PT-CXXOLF": {
+    "id": "PT-CXXOLF",
+    "order_id": "PT-CXXOLF",
+    "orderId": "PT-CXXOLF",
+    "customer_name": "QA Tester",
+    "customer_email": "qa@example.com",
+    "customer_phone": "09171234567",
+    "delivery_mode": "lalamove",
+    "shipping_address": "",
+    "payment_method": "GCash",
+    "payment_proof_url": "",
+    "subtotal": 300,
+    "shipping_fee": 50,
+    "total_amount": 350,
+    "status": "Pending",
+    "created_at": "2026-06-23T02:29:29.432Z",
+    "updated_at": "2026-06-23T02:29:29.432Z",
+    "createdAt": "2026-06-23T02:29:29.432Z",
+    "updatedAt": "2026-06-23T02:29:29.432Z",
+    "items": [
+      {
+        "id": 1,
+        "name": "Test Product",
+        "qty": 2,
+        "price": 150
+      }
+    ],
+    "statusHistory": [
+      {
+        "id": "hist-2ypg2",
+        "order_id": "PT-CXXOLF",
+        "status": "Pending",
+        "updated_by": "system",
+        "created_at": "2026-06-23T02:29:29.432Z"
+      }
+    ],
+    "receiptFileName": "",
+    "receiptFileDataUrl": ""
+  }
+}

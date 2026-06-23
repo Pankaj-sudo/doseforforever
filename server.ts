@@ -8,6 +8,7 @@ import fs from "fs";
 dotenv.config();
 
 const firebaseConfigPath = path.join(process.cwd(), 'firebase-applet-config.json');
+  const serviceAccountPath = path.join(process.cwd(), 'serviceAccountKey.json');
 
 function loadFirebaseConfig() {
   if (fs.existsSync(firebaseConfigPath)) {
@@ -35,6 +36,46 @@ async function startServer() {
   const app = express();
   const PORT = 3000;
 
+  // Attempt to initialize Firebase Admin SDK (prefer for server-side writes)
+  let adminDb: any = null;
+  try {
+    if (process.env.GOOGLE_APPLICATION_CREDENTIALS || fs.existsSync(serviceAccountPath)) {
+      const admin = await import('firebase-admin');
+      if (admin.apps && admin.apps.length === 0) {
+        if (process.env.GOOGLE_APPLICATION_CREDENTIALS) {
+          admin.initializeApp();
+        } else {
+          const sa = JSON.parse(fs.readFileSync(serviceAccountPath, 'utf8'));
+          admin.initializeApp({ credential: admin.credential.cert(sa) });
+        }
+      }
+      adminDb = admin.firestore();
+      console.log('[server.ts] Firebase Admin SDK initialized for server writes.');
+    }
+  } catch (adminErr) {
+    console.warn('[server.ts] Firebase Admin SDK not available or failed to init:', adminErr?.message || adminErr);
+  }
+
+  // Local fallback storage for offline/testing environments
+  const localOrdersPath = path.join(process.cwd(), 'local_orders.json');
+  const readLocalOrders = () => {
+    try {
+      if (!fs.existsSync(localOrdersPath)) return {};
+      const raw = fs.readFileSync(localOrdersPath, 'utf8');
+      return JSON.parse(raw || '{}');
+    } catch (e) {
+      console.warn('[server.ts] Failed to read local orders file:', e?.message || e);
+      return {};
+    }
+  };
+  const writeLocalOrders = (obj: any) => {
+    try {
+      fs.writeFileSync(localOrdersPath, JSON.stringify(obj, null, 2), 'utf8');
+    } catch (e) {
+      console.error('[server.ts] Failed to write local orders file:', e?.message || e);
+    }
+  };
+
   // Set body parser constraints for base64 attached screenshots of payment slips
   app.use(express.json({ limit: "15mb" }));
   app.use(express.urlencoded({ limit: "15mb", extended: true }));
@@ -47,22 +88,14 @@ async function startServer() {
         return res.status(400).json({ success: false, error: "Missing items payload." });
       }
 
-      // Initialize firebase if not done already
+      // Initialize firebase if not done already (use Admin SDK when available)
       let firestoreDb;
-      try {
-        const { initializeApp: initFbApp, getApp, getApps } = await import("firebase/app");
-        const { getFirestore: getFbFirestore } = await import("firebase/firestore");
-        
-        let app;
-        if (getApps().length === 0) {
-          const firebaseConfig = loadFirebaseConfig();
-          app = initFbApp(firebaseConfig);
-        } else {
-          app = getApp();
-        }
-        firestoreDb = getFbFirestore(app);
-      } catch (fbErr) {
-        console.error("Firebase SDK init failed inside server.ts:", fbErr);
+      if (typeof adminDb !== 'undefined' && adminDb) {
+        // Use admin SDK Firestore instance
+        firestoreDb = adminDb;
+      } else {
+        // Admin SDK not configured for server; skip client SDK path to avoid permission errors
+        firestoreDb = null;
       }
 
       let orderId = "";
@@ -73,29 +106,50 @@ async function startServer() {
       
       // If Firestore is available, query collision checking
       if (firestoreDb) {
-        const { doc, getDoc } = await import("firebase/firestore");
-        while (!isUnique && attempts < 10) {
-          attempts++;
-          let randStr = '';
-          for (let i = 0; i < 6; i++) {
-            randStr += chars.charAt(Math.floor(Math.random() * chars.length));
+        if (firestoreDb.collection) {
+          // Admin SDK Firestore
+          while (!isUnique && attempts < 10) {
+            attempts++;
+            let randStr = '';
+            for (let i = 0; i < 6; i++) {
+              randStr += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            const checkId = `PT-${randStr}`;
+            const docSnap = await firestoreDb.collection('orders').doc(checkId).get();
+            if (!docSnap.exists) {
+              orderId = checkId;
+              isUnique = true;
+            }
           }
-          const checkId = `PT-${randStr}`;
-          
-          const docRef = doc(firestoreDb, "orders", checkId);
-          const docSnap = await getDoc(docRef);
-          if (!docSnap.exists()) {
-            orderId = checkId;
-            isUnique = true;
+        } else {
+          // Client SDK Firestore
+          const { doc, getDoc } = await import("firebase/firestore");
+          while (!isUnique && attempts < 10) {
+            attempts++;
+            let randStr = '';
+            for (let i = 0; i < 6; i++) {
+              randStr += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            const checkId = `PT-${randStr}`;
+            const docRef = doc(firestoreDb, "orders", checkId);
+            const docSnap = await getDoc(docRef);
+            if (!docSnap.exists()) {
+              orderId = checkId;
+              isUnique = true;
+            }
           }
         }
       } else {
-        // Fallback for offline/no-db mode
+        // Fallback for offline/no-db mode — ensure uniqueness against local store
+        const existing = readLocalOrders();
         let randStr = '';
-        for (let i = 0; i < 6; i++) {
-          randStr += chars.charAt(Math.floor(Math.random() * chars.length));
-        }
-        orderId = `PT-${randStr}`;
+        do {
+          randStr = '';
+          for (let i = 0; i < 6; i++) {
+            randStr += chars.charAt(Math.floor(Math.random() * chars.length));
+          }
+          orderId = `PT-${randStr}`;
+        } while (existing[orderId]);
       }
 
       if (!orderId) {
@@ -138,42 +192,85 @@ async function startServer() {
 
       // Write dynamically if Firestore is connected
       if (firestoreDb) {
-        const { doc, writeBatch } = await import("firebase/firestore");
-        const batch = writeBatch(firestoreDb);
+        if (firestoreDb.collection) {
+          // Admin SDK path
+          const db = firestoreDb;
+          const batch = db.batch();
+          const orderRef = db.collection('orders').doc(orderId);
+          batch.set(orderRef, newOrderData as any);
 
-        // Order document
-        const orderRef = doc(firestoreDb, "orders", orderId);
-        batch.set(orderRef, newOrderData);
-
-        // Items subcollection
-        const items = data.items || [];
-        items.forEach((item: any, idx: number) => {
-          const itemId = `item_${idx}_${Math.random().toString(36).substring(2, 6)}`;
-          const itemRef = doc(firestoreDb, "orders", orderId, "order_items", itemId);
-          batch.set(itemRef, {
-            id: itemId,
-            order_id: orderId,
-            product_id: String(item.id || item.product_id),
-            product_name: item.name || item.product_name,
-            quantity: Number(item.qty || item.quantity) || 1,
-            price: Number(item.price) || 0,
-            subtotal: (Number(item.price) || 0) * (Number(item.qty || item.quantity) || 1)
+          const items = data.items || [];
+          items.forEach((item: any, idx: number) => {
+            const itemId = `item_${idx}_${Math.random().toString(36).substring(2, 6)}`;
+            const itemRef = orderRef.collection('order_items').doc(itemId);
+            batch.set(itemRef, {
+              id: itemId,
+              order_id: orderId,
+              product_id: String(item.id || item.product_id),
+              product_name: item.name || item.product_name,
+              quantity: Number(item.qty || item.quantity) || 1,
+              price: Number(item.price) || 0,
+              subtotal: (Number(item.price) || 0) * (Number(item.qty || item.quantity) || 1)
+            });
           });
-        });
 
-        // History subcollection
-        const historyId = `hist_${Math.random().toString(36).substring(2, 8)}`;
-        const historyRef = doc(firestoreDb, "orders", orderId, "order_status_history", historyId);
-        batch.set(historyRef, {
-          id: historyId,
-          order_id: orderId,
-          status: "Pending",
-          updated_by: "system",
-          created_at: now
-        });
+          const historyId = `hist_${Math.random().toString(36).substring(2, 8)}`;
+          const historyRef = orderRef.collection('order_status_history').doc(historyId);
+          batch.set(historyRef, {
+            id: historyId,
+            order_id: orderId,
+            status: "Pending",
+            updated_by: "system",
+            created_at: now
+          });
 
-        await batch.commit();
-        console.log(`[server.ts] Created order ${orderId} in Firestore with subcollections.`);
+          await batch.commit();
+          console.log(`[server.ts] Created order ${orderId} in Firestore with subcollections (admin SDK).`);
+        } else {
+          // Client SDK path
+          const { doc, writeBatch } = await import("firebase/firestore");
+          const batch = writeBatch(firestoreDb);
+
+          // Order document
+          const orderRef = doc(firestoreDb, "orders", orderId);
+          batch.set(orderRef, newOrderData as any);
+
+          // Items subcollection
+          const items = data.items || [];
+          items.forEach((item: any, idx: number) => {
+            const itemId = `item_${idx}_${Math.random().toString(36).substring(2, 6)}`;
+            const itemRef = doc(firestoreDb, "orders", orderId, "order_items", itemId);
+            batch.set(itemRef, {
+              id: itemId,
+              order_id: orderId,
+              product_id: String(item.id || item.product_id),
+              product_name: item.name || item.product_name,
+              quantity: Number(item.qty || item.quantity) || 1,
+              price: Number(item.price) || 0,
+              subtotal: (Number(item.price) || 0) * (Number(item.qty || item.quantity) || 1)
+            });
+          });
+
+          // History subcollection
+          const historyId = `hist_${Math.random().toString(36).substring(2, 8)}`;
+          const historyRef = doc(firestoreDb, "orders", orderId, "order_status_history", historyId);
+          batch.set(historyRef, {
+            id: historyId,
+            order_id: orderId,
+            status: "Pending",
+            updated_by: "system",
+            created_at: now
+          });
+
+          await batch.commit();
+          console.log(`[server.ts] Created order ${orderId} in Firestore with subcollections.`);
+        }
+      } else {
+        // Persist locally for offline testing
+        const existing = readLocalOrders();
+        existing[orderId] = newOrderData;
+        writeLocalOrders(existing);
+        console.log(`[server.ts] Created local fallback order ${orderId}`);
       }
 
       res.json({ success: true, orderId, order: newOrderData });
@@ -187,20 +284,11 @@ async function startServer() {
   app.get("/api/generate-id", async (req, res) => {
     try {
       let firestoreDb;
-      try {
-        const { initializeApp: initFbApp, getApp, getApps } = await import("firebase/app");
-        const { getFirestore: getFbFirestore } = await import("firebase/firestore");
-        
-        let app;
-        if (getApps().length === 0) {
-          const firebaseConfig = loadFirebaseConfig();
-          app = initFbApp(firebaseConfig);
-        } else {
-          app = getApp();
-        }
-        firestoreDb = getFbFirestore(app);
-      } catch (fbErr) {
-        console.error("Firebase SDK init failed inside server.ts:", fbErr);
+      if (typeof adminDb !== 'undefined' && adminDb) {
+        firestoreDb = adminDb;
+      } else {
+        // Admin SDK not configured; use local store for testing
+        firestoreDb = null;
       }
 
       let orderId = "";
@@ -209,7 +297,41 @@ async function startServer() {
       const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
       
       if (firestoreDb) {
-        const { doc, getDoc } = await import("firebase/firestore");
+        if (firestoreDb.collection) {
+          // Admin SDK
+          while (!isUnique && attempts < 15) {
+            attempts++;
+            let randStr = '';
+            for (let i = 0; i < 6; i++) {
+              randStr += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            const checkId = `PT-${randStr}`;
+            const docSnap = await firestoreDb.collection('orders').doc(checkId).get();
+            if (!docSnap.exists) {
+              orderId = checkId;
+              isUnique = true;
+            }
+          }
+        } else {
+          const { doc, getDoc } = await import("firebase/firestore");
+          while (!isUnique && attempts < 15) {
+            attempts++;
+            let randStr = '';
+            for (let i = 0; i < 6; i++) {
+              randStr += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            const checkId = `PT-${randStr}`;
+            const docRef = doc(firestoreDb, "orders", checkId);
+            const docSnap = await getDoc(docRef);
+            if (!docSnap.exists()) {
+              orderId = checkId;
+              isUnique = true;
+            }
+          }
+        }
+      } else {
+        // Use local store to ensure uniqueness
+        const existing = readLocalOrders();
         while (!isUnique && attempts < 15) {
           attempts++;
           let randStr = '';
@@ -217,20 +339,11 @@ async function startServer() {
             randStr += chars.charAt(Math.floor(Math.random() * chars.length));
           }
           const checkId = `PT-${randStr}`;
-          
-          const docRef = doc(firestoreDb, "orders", checkId);
-          const docSnap = await getDoc(docRef);
-          if (!docSnap.exists()) {
+          if (!existing[checkId]) {
             orderId = checkId;
             isUnique = true;
           }
         }
-      } else {
-        let randStr = '';
-        for (let i = 0; i < 6; i++) {
-          randStr += chars.charAt(Math.floor(Math.random() * chars.length));
-        }
-        orderId = `PT-${randStr}`;
       }
 
       if (!orderId) {
@@ -622,6 +735,116 @@ ${textBody}
         success: false,
         error: err.message || "Failed to dispatch status notice."
       });
+    }
+  });
+
+  // REST API: Resend order confirmation emails by orderId
+  app.post("/api/resend-email", async (req, res) => {
+    try {
+      const { orderId } = req.body;
+      if (!orderId) {
+        return res.status(400).json({ success: false, error: "Missing orderId." });
+      }
+
+      // Try to load order from Firestore if available (prefer Admin SDK)
+      let order: any = null;
+      try {
+        if (typeof adminDb !== 'undefined' && adminDb) {
+          const snap = await adminDb.collection('orders').doc(orderId).get();
+          if (!snap.exists) {
+            // Try local fallback
+            const local = readLocalOrders();
+            if (!local[orderId]) {
+              return res.status(404).json({ success: false, error: "Order not found in Firestore or local store." });
+            }
+            order = local[orderId];
+          } else {
+            order = snap.data();
+          }
+        } else {
+          const { initializeApp: initFbApp, getApp, getApps } = await import("firebase/app");
+          const { getFirestore: getFbFirestore, doc, getDoc } = await import("firebase/firestore");
+          let app;
+          if (getApps().length === 0) {
+            const firebaseConfig = loadFirebaseConfig();
+            app = initFbApp(firebaseConfig);
+          } else {
+            app = getApp();
+          }
+          const firestoreDb = getFbFirestore(app);
+          const orderRef = doc(firestoreDb, "orders", orderId);
+          const snap = await getDoc(orderRef);
+          if (!snap.exists()) {
+            // Try local fallback
+            const local = readLocalOrders();
+            if (!local[orderId]) {
+              return res.status(404).json({ success: false, error: "Order not found in Firestore or local store." });
+            }
+            order = local[orderId];
+          }
+          order = order || snap.data();
+        }
+
+        const smtpHost = process.env.SMTP_HOST || "smtp.gmail.com";
+        const smtpPort = parseInt(process.env.SMTP_PORT || "587", 10);
+        const smtpUser = process.env.SMTP_USER;
+        const smtpPass = process.env.SMTP_PASS;
+
+        if (!smtpUser || !smtpPass) {
+          console.warn("SMTP credentials missing — resend will be mocked and logged.");
+          console.log(`[Resend Mock] Order: ${orderId} | Customer: ${order.customer_email || order.researcherEmail}`);
+          return res.json({ success: true, mocked: true, message: "SMTP not configured — resend logged to server." });
+        }
+
+        const transporter = nodemailer.createTransport({
+          host: smtpHost,
+          port: smtpPort,
+          secure: smtpPort === 465,
+          auth: { user: smtpUser, pass: smtpPass }
+        });
+
+        const itemsStr = (order.items || []).map((it: any) => `• ${it.name || it.product_name} (${it.unit || '10mg'}) × ${it.qty || it.quantity}`).join('\n');
+        const trackingUrl = `${req.protocol}://${req.get('host')}/track-order?id=${orderId}`;
+
+        const htmlBody = `
+          <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; border: 1px solid #e2e8f0; border-radius: 12px; background-color: #fff; color: #0f172a;">
+            <h2 style="color:#0d9488">Dose of Forever — Reservation Details</h2>
+            <p>Order ID: <strong>${orderId}</strong></p>
+            <p>Customer: <strong>${order.customer_name || order.researcherName}</strong></p>
+            <pre style="white-space: pre-line; background:#f8fafc; padding:12px; border-radius:8px;">${itemsStr}</pre>
+            <p>Total: ₱${(order.total_amount || order.totalAmount || 0).toLocaleString()}</p>
+            <p style="text-align:center; margin-top:14px;"><a href="${trackingUrl}" style="background:#0d9488;color:#fff;padding:10px 18px;border-radius:24px;text-decoration:none;">Track My Order</a></p>
+          </div>
+        `;
+
+        const mailOptionsMerchant = {
+          from: `"Dose of Forever Alerts" <${smtpUser}>`,
+          to: "Pankaj.ydv707@gmail.com",
+          subject: `🔁 [RESEND] Order ${orderId} - Notification Resent`,
+          html: htmlBody
+        };
+
+        const customerEmail = order.customer_email || order.researcherEmail;
+        const mailOptionsCustomer = {
+          from: `"Dose of Forever Support" <${smtpUser}>`,
+          to: customerEmail,
+          subject: `🔁 Dose of Forever Reservation Details - Ref: ${orderId}`,
+          html: htmlBody
+        };
+
+        await Promise.all([
+          transporter.sendMail(mailOptionsMerchant),
+          transporter.sendMail(mailOptionsCustomer)
+        ]);
+
+        return res.json({ success: true, message: "Resend complete." });
+      } catch (fbErr) {
+        console.error("Resend email failed (Firestore/SMTP):", fbErr);
+        return res.status(500).json({ success: false, error: fbErr.message || String(fbErr) });
+      }
+    } catch (err: any) {
+      console.error("/api/resend-email error:", err);
+      return res.status(500).json({ success: false, error: err.message || String(err) });
     }
   });
 
