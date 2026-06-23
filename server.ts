@@ -4,6 +4,7 @@ import { createServer as createViteServer } from "vite";
 import nodemailer from "nodemailer";
 import dotenv from "dotenv";
 import fs from "fs";
+import * as admin from "firebase-admin";
 
 dotenv.config();
 
@@ -40,7 +41,6 @@ async function startServer() {
   let adminDb: any = null;
   try {
     if (process.env.GOOGLE_APPLICATION_CREDENTIALS || fs.existsSync(serviceAccountPath)) {
-      const admin = await import('firebase-admin');
       if (admin.apps && admin.apps.length === 0) {
         if (process.env.GOOGLE_APPLICATION_CREDENTIALS) {
           admin.initializeApp();
