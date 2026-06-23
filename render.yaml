@@ -1,0 +1,36 @@
+services:
+  - type: web
+    name: doseofforever-app
+    env: node
+    plan: starter
+    repo: <YOUR_REPO_URL>
+    branch: main
+    buildCommand: npm install && npm run build
+    startCommand: npm run start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: SMTP_HOST
+        value: smtp.gmail.com
+      - key: SMTP_PORT
+        value: "587"
+      - key: SMTP_USER
+        value: ""
+      - key: SMTP_PASS
+        value: ""
+      - key: FIREBASE_API_KEY
+        value: ""
+      - key: FIREBASE_AUTH_DOMAIN
+        value: ""
+      - key: FIREBASE_PROJECT_ID
+        value: ""
+      - key: FIREBASE_STORAGE_BUCKET
+        value: ""
+      - key: FIREBASE_MESSAGING_SENDER_ID
+        value: ""
+      - key: FIREBASE_APP_ID
+        value: ""
+      - key: FIREBASE_MEASUREMENT_ID
+        value: ""
+      - key: FIREBASE_FIRESTORE_DATABASE_ID
+        value: ""

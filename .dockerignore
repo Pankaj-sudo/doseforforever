@@ -1,0 +1,11 @@
+node_modules
+npm-debug.log
+Dockerfile
+Dockerfile.vercel
+dist
+.vscode
+.git
+.gitignore
+.env
+*.local
+*.log

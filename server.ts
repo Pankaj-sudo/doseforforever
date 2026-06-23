@@ -7,6 +7,30 @@ import fs from "fs";
 
 dotenv.config();
 
+const firebaseConfigPath = path.join(process.cwd(), 'firebase-applet-config.json');
+
+function loadFirebaseConfig() {
+  if (fs.existsSync(firebaseConfigPath)) {
+    return JSON.parse(fs.readFileSync(firebaseConfigPath, 'utf8'));
+  }
+
+  const env = process.env;
+  if (env.FIREBASE_API_KEY && env.FIREBASE_AUTH_DOMAIN && env.FIREBASE_PROJECT_ID && env.FIREBASE_STORAGE_BUCKET && env.FIREBASE_APP_ID) {
+    return {
+      apiKey: env.FIREBASE_API_KEY,
+      authDomain: env.FIREBASE_AUTH_DOMAIN,
+      projectId: env.FIREBASE_PROJECT_ID,
+      storageBucket: env.FIREBASE_STORAGE_BUCKET,
+      messagingSenderId: env.FIREBASE_MESSAGING_SENDER_ID,
+      appId: env.FIREBASE_APP_ID,
+      measurementId: env.FIREBASE_MEASUREMENT_ID,
+      firestoreDatabaseId: env.FIREBASE_FIRESTORE_DATABASE_ID
+    };
+  }
+
+  throw new Error('Firebase configuration is missing. Provide firebase-applet-config.json or set FIREBASE_* env vars.');
+}
+
 async function startServer() {
   const app = express();
   const PORT = 3000;
@@ -31,7 +55,7 @@ async function startServer() {
         
         let app;
         if (getApps().length === 0) {
-          const firebaseConfig = JSON.parse(fs.readFileSync(path.join(process.cwd(), "firebase-applet-config.json"), "utf8"));
+          const firebaseConfig = loadFirebaseConfig();
           app = initFbApp(firebaseConfig);
         } else {
           app = getApp();
@@ -169,7 +193,7 @@ async function startServer() {
         
         let app;
         if (getApps().length === 0) {
-          const firebaseConfig = JSON.parse(fs.readFileSync(path.join(process.cwd(), "firebase-applet-config.json"), "utf8"));
+          const firebaseConfig = loadFirebaseConfig();
           app = initFbApp(firebaseConfig);
         } else {
           app = getApp();
