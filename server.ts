@@ -830,9 +830,9 @@ ${textBody}
         ]);
 
         return res.json({ success: true, message: "Resend complete." });
-      } catch (fbErr) {
+      } catch (fbErr: any) {
         console.error("Resend email failed (Firestore/SMTP):", fbErr);
-        return res.status(500).json({ success: false, error: fbErr.message || String(fbErr) });
+        return res.status(500).json({ success: false, error: fbErr?.message || String(fbErr) });
       }
     } catch (err: any) {
       console.error("/api/resend-email error:", err);
