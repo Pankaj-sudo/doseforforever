@@ -1,0 +1,12 @@
+{
+  "name": "Dose of Forever",
+  "description": "Premium research peptide visual database with responsive controls, package add-on selections (Bacwater, Reusable & Non-Reusable Pens), and high-end styling.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone",
+    "geolocation"
+  ],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

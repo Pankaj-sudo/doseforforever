@@ -1,0 +1,263 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "Represents a research user profile registered with Google Sign-In.",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "The unique Firebase Auth UID"
+        },
+        "name": {
+          "type": "string",
+          "description": "Full name of the researcher"
+        },
+        "email": {
+          "type": "string",
+          "description": "Google account email address"
+        },
+        "photoURL": {
+          "type": "string",
+          "description": "Google avatar picture URL"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Creation timestamp"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Last update timestamp"
+        }
+      },
+      "required": ["userId", "name", "email"]
+    },
+    "Product": {
+      "title": "Product",
+      "description": "Represents a physical or biotechnology product / peptide available in stock.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "number",
+          "description": "Numerical product ID"
+        },
+        "name": {
+          "type": "string",
+          "description": "Aesthetic or formal name of the peptide"
+        },
+        "unit": {
+          "type": "string",
+          "description": "Vial content/dosage size (e.g., 10mg)"
+        },
+        "stock": {
+          "type": "number",
+          "description": "The available inventory count"
+        },
+        "price": {
+          "type": "number",
+          "description": "The price of a single unit in PHP"
+        },
+        "cat": {
+          "type": "string",
+          "description": "Peptides, Weight Loss, Cognitive & Sleep, or Lab Essentials"
+        },
+        "desc": {
+          "type": "string",
+          "description": "Detailed description of the product"
+        },
+        "image": {
+          "type": "string",
+          "description": "Unsplash product illustration image URL"
+        },
+        "abbr": {
+          "type": "string",
+          "description": "The unique shorthand code (e.g. CJC)"
+        },
+        "popularity": {
+          "type": "number",
+          "description": "Scientific rating or popularity weight used in sorting"
+        }
+      },
+      "required": ["id", "name", "price", "stock", "cat"]
+    },
+    "Order": {
+      "title": "Order",
+      "description": "Represents a reservation or inquiry request placed by a researcher.",
+      "type": "object",
+      "properties": {
+        "orderId": {
+          "type": "string",
+          "description": "Unique alpha-numeric Order ID"
+        },
+        "researcherName": {
+          "type": "string"
+        },
+        "researcherMobile": {
+          "type": "string"
+        },
+        "researcherEmail": {
+          "type": "string"
+        },
+        "items": {
+          "type": "array"
+        },
+        "subtotal": {
+          "type": "number"
+        },
+        "deliveryOption": {
+          "type": "string"
+        },
+        "deliveryFee": {
+          "type": "number"
+        },
+        "totalAmount": {
+          "type": "number"
+        },
+        "deliveryAddress": {
+          "type": "string"
+        },
+        "receiptFileName": {
+          "type": "string"
+        },
+        "receiptFileDataUrl": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string",
+          "enum": ["Pending", "Completed"]
+        },
+        "createdAt": {
+          "type": "string"
+        },
+        "updatedAt": {
+          "type": "string"
+        }
+      },
+      "required": ["orderId", "researcherName", "researcherEmail", "items", "totalAmount"]
+    },
+    "COA": {
+      "title": "COA",
+      "description": "Represents an HPLC/Analytical Certificate of Analysis for a peptide batch.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique ID of the COA record"
+        },
+        "peptideName": {
+          "type": "string",
+          "description": "Associated peptide name"
+        },
+        "batchNumber": {
+          "type": "string",
+          "description": "Batch serial identifier"
+        },
+        "dateTested": {
+          "type": "string",
+          "description": "Date of assay completion"
+        },
+        "purityPercent": {
+          "type": "number",
+          "description": "Analytical purity percent (e.g., 99.6)"
+        },
+        "thumbnailUrl": {
+          "type": "string",
+          "description": "Image preview URL"
+        },
+        "coaUrl": {
+          "type": "string",
+          "description": "Full size image or document URL"
+        },
+        "createdAt": {
+          "type": "string"
+        },
+        "updatedAt": {
+          "type": "string"
+        }
+      },
+      "required": ["id", "peptideName", "purityPercent", "dateTested"]
+    },
+    "Consultation": {
+      "title": "Consultation",
+      "description": "Represents an interactive clinician health assessment and peptide consultation questionnaire.",
+      "type": "object",
+      "properties": {
+        "consultationId": {
+          "type": "string",
+          "description": "Unique alphanumeric ID"
+        },
+        "fullName": {
+          "type": "string",
+          "description": "Full name of the customer"
+        },
+        "mobileNumber": {
+          "type": "string",
+          "description": "Mobile contact number"
+        },
+        "email": {
+          "type": "string",
+          "description": "Contact email address"
+        },
+        "medicalConcern": {
+          "type": "string",
+          "description": "Self-described medical concerns"
+        },
+        "answers": {
+          "type": "object",
+          "description": "A map of intake responses and BMI metrics"
+        },
+        "recommendedPeptides": {
+          "type": "array",
+          "description": "List of recommended peptides based on intake"
+        },
+        "receiptFileName": {
+          "type": "string"
+        },
+        "receiptFileDataUrl": {
+          "type": "string"
+        },
+        "prescriptionFileName": {
+          "type": "string"
+        },
+        "prescriptionFileDataUrl": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string",
+          "enum": ["Pending", "Paid", "Under Review", "Completed"]
+        },
+        "createdAt": {
+          "type": "string"
+        },
+        "updatedAt": {
+          "type": "string"
+        }
+      },
+      "required": ["consultationId", "fullName", "email", "answers"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "User profiles restricted to only reading/writing by the profile owner."
+    },
+    "/products/{productId}": {
+      "schema": "Product",
+      "description": "Dynamic inventory products; readable by anyone, modifiable only by system administrator."
+    },
+    "/orders/{orderId}": {
+      "schema": "Order",
+      "description": "Client reservation orders; submittable by customers, manageable by admin."
+    },
+    "/coas/{coaId}": {
+      "schema": "COA",
+      "description": "HPLC Certificates of Analysis; readable by all researchers, manageable by administrator only."
+    },
+    "/consultations/{consultationId}": {
+      "schema": "Consultation",
+      "description": "Clinician consultation requests; submittable by customers, manageable by clinical admin."
+    }
+  }
+}

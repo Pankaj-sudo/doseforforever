@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dose of Forever — Cinematic Video Experience</title>
+  
+  <!-- Tailwind CSS Via Play CDN for professional grid/spacing systems -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            display: ['Space Grotesk', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Google Fonts (Inter + Space Grotesk for high-end SaaS typography) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    /* CSS Grid/Pattern background with sleek fade adjustments */
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #020617; /* High-end deep luxury slate */
+      overflow: hidden; /* Force viewport locking */
+      margin: 0;
+      padding: 0;
+      height: 100vh;
+      width: 100vw;
+    }
+
+    /* 
+      CRITICAL VIEWPORT FILLER FOR 16:9 ASPECT RATIO VIDEO
+      Forces the YouTube iframe to occupy the exact 100vw x 100vh viewport space, Copping any black side/top margins elegantly.
+    */
+    .video-background-wrapper {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      z-index: 0;
+      pointer-events: none; /* Let clicks pass-through directly to the document elements */
+    }
+
+    .video-background-iframe {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 100vw;
+      height: 56.25vw; /* 16:9 Ratio mathematical match: (100 * 9 / 16) */
+      min-height: 100vh;
+      min-width: 177.77vh; /* Dual axis aspect filler: (100 * 16 / 9) */
+      transform: translate(-50%, -50%);
+      opacity: 0;
+      transition: opacity 1.5s ease-in-out; /* Smooth fade-in once API loaded & playing */
+    }
+
+    /* Cinematic glassmorphic panels inspired by Apple & premium SaaS landing pages */
+    .glass-card {
+      background: rgba(15, 23, 42, 0.45);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    }
+
+    .glass-button {
+      background: rgba(255, 255, 255, 0.06);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    
+    .glass-button:hover {
+      background: rgba(255, 255, 255, 0.12);
+      border-color: rgba(20, 184, 166, 0.5); /* Brand teal highlight */
+      box-shadow: 0 0 25px rgba(20, 184, 166, 0.2);
+      transform: translateY(-2px);
+    }
+
+    /* Keyframe Animations for Entrance */
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .animate-fade-in-up {
+      animation: fadeInUp 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    /* Delay utilities to cascade the typography presentation */
+    .animation-delay-100 { animation-delay: 100ms; }
+    .animation-delay-300 { animation-delay: 300ms; }
+    .animation-delay-500 { animation-delay: 500ms; }
+  </style>
+</head>
+<body class="text-white relative">
+
+  <!-- THE VIEWPORT BG WRAPPER -->
+  <div class="video-background-wrapper">
+    <!-- 
+      Dynamically populated with YouTube Iframe Player container.
+      Using Player API enables programmatically controlling mute state, looping seamlessly, 
+      and tracking video playbacks perfectly without browser policy limits.
+    -->
+    <div id="youtube-bg-player" class="video-background-iframe"></div>
+  </div>
+
+  <!-- MULTI-LAYER DARK VIEWPORT OVERLAYS -->
+  <!-- 
+    Layer 1: Linear Vignette (Softening borders & improving extreme text contrast) 
+  -->
+  <div class="absolute inset-0 bg-gradient-to-b from-slate-950/80 via-slate-950/60 to-slate-950 z-10 pointer-events-none"></div>
+  <!-- 
+    Layer 2: Clinical Digital Mesh Pattern Overlay (Combines high-end tech vibe with background texture)
+  -->
+  <div class="absolute inset-0 opacity-[0.12] bg-[radial-gradient(#0d9488_1px,transparent_1px)] [background-size:20px_20px] pointer-events-none z-10"></div>
+
+  <!-- FULL SCREEN HERO CONTENT OVERLAY -->
+  <div class="relative z-20 min-h-screen w-full flex items-center justify-center px-4 sm:px-6 lg:px-8 text-center">
+    
+    <div class="max-w-4xl mx-auto space-y-8 flex flex-col items-center">
+      
+      <!-- Brand Pill Indicator -->
+      <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-teal-950/60 border border-teal-500/20 text-teal-400 font-mono text-xs tracking-wider animate-fade-in-up opacity-0">
+        <span class="inline-block w-2 h-2 rounded-full bg-teal-400 animate-pulse"></span>
+        <span>EXPERIMENTAL PRESENTATION</span>
+      </div>
+
+      <!-- Main Headline (SaaS and premium Apple-styled font pairings) -->
+      <h1 class="font-display text-4xl sm:text-5xl md:text-7xl font-extrabold tracking-tight text-white leading-[1.1] animate-fade-in-up animation-delay-100 opacity-0 max-w-3xl">
+        The Science of <br class="hidden sm:block"/>
+        <span class="text-transparent bg-clip-text bg-gradient-to-b from-teal-300 via-teal-400 to-emerald-500">Infinite Longevity</span>
+      </h1>
+
+      <!-- Under-text (Ensures clean legibility regardless of video lighting below) -->
+      <p class="text-base sm:text-lg md:text-xl text-slate-300 max-w-2xl leading-relaxed font-sans font-light animate-fade-in-up animation-delay-300 opacity-0 select-none">
+        Explore clinical laboratory standards of lyophilized peptide chemical assays. Meticulously vacuum sealed, analytical ready, and registered for metabolic receptor analytics.
+      </p>
+
+      <!-- Glassmorphic Button Layout -->
+      <div class="flex flex-col sm:flex-row gap-4 justify-center items-center w-full max-w-md pt-4 animate-fade-in-up animation-delay-500 opacity-0">
+        
+        <a href="#explore" class="w-full sm:w-auto px-8 py-4 rounded-full bg-gradient-to-r from-teal-500 to-emerald-600 hover:from-teal-400 hover:to-emerald-500 text-slate-950 font-bold tracking-wide text-sm shadow-xl shadow-teal-500/10 hover:shadow-teal-500/25 transition-all text-center">
+          Explore Chemical Catalog
+        </a>
+        
+        <button onclick="toggleAudio()" id="audio-toggle-btn" class="w-full sm:w-auto px-6 py-4 rounded-full glass-button text-white font-mono text-xs flex items-center justify-center gap-2">
+          <span>🔇 AUDIO OFF</span>
+        </button>
+
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- IN-PAGE INTERACTIVE INTERFACE FOOTER (Sleek technical statistics) -->
+  <div class="absolute bottom-6 inset-x-0 z-20 hidden md:flex justify-between items-center px-12 text-slate-400 text-[10px] font-mono tracking-widest uppercase">
+    <div class="flex items-center gap-4">
+      <span class="flex items-center gap-1.5 text-teal-400"><span class="w-1.5 h-1.5 rounded-full bg-teal-400 animate-ping"></span> EST. SERVER LIVE</span>
+      <span>•</span>
+      <span>99.4% HPLC STANDARDIZED</span>
+    </div>
+    <div class="flex gap-4">
+      <span>REF_ID: PC_havKf-ZA</span>
+      <span>•</span>
+      <span id="player-status-tag">VIDEO LOADING...</span>
+    </div>
+  </div>
+
+  <!-- YOUTUBE IFRAME PLAYER API INTEGRATION LAYER -->
+  <script>
+    // 1. Inject the Official YouTube Iframe Player API asynchronously
+    var tag = document.createElement('script');
+    tag.src = "https://www.youtube.com/iframe_api";
+    var firstScriptTag = document.getElementsByTagName('script')[0];
+    firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+
+    var player;
+    
+    /* 
+      ========================================================================
+      DIRECTIONS FOR VIDEO REPLACEMENT:
+      To change the background video, replace the 11-character alphanumeric code 
+      "PC_havKf-ZA" with your new YouTube Video ID in the TWO places indicated below:
+      ========================================================================
+    */
+    var YOUTUBE_VIDEO_ID = "PC_havKf-ZA"; // <-- REPLACE WITH YOUR YOUTUBE VIDEO ID
+
+    // 2. This callback runs automatically once API completes downloading
+    function onYouTubeIframeAPIReady() {
+      player = new YT.Player('youtube-bg-player', {
+        videoId: YOUTUBE_VIDEO_ID,
+        playerVars: {
+          'autoplay': 1,        // Request autoplay
+          'mute': 1,            // MUST remain muted on start to conform with Chromium/Apple autoplay policies
+          'controls': 0,        // Hide native player navigation controls
+          'rel': 0,             // Prevent showing related videos at the end
+          'showinfo': 0,        // Hide video title bar
+          'iv_load_policy': 3,  // Disable video annotations
+          'modestbranding': 1,  // Limit YouTube branding watermark visibility
+          'loop': 1,            // Request video looping
+          'playlist': YOUTUBE_VIDEO_ID, // playlist key matching VIDEO_ID is REQUIRED by YouTube for true loop execution
+          'fs': 0,              // Prevent fullscr button overlay
+          'autohide': 1,        // Hide video controls wrapper automatically
+          'playsinline': 1      // Force playback inline inside iOS Webviews/Safari
+        },
+        events: {
+          'onReady': onPlayerReady,
+          'onStateChange': onPlayerStateChange
+        }
+      });
+    }
+
+    // 3. Callback triggered once the video player reaches ready condition
+    function onPlayerReady(event) {
+      // Affirm strict mute policy to bypass autoplay locks
+      event.target.mute();
+      event.target.playVideo();
+      
+      // Update our technical footer details
+      document.getElementById('player-status-tag').textContent = "AUTOPLAYING BACKGROUND STREAM";
+    }
+
+    // 4. Callback monitors player lifecycle and executes true loops
+    function onPlayerStateChange(event) {
+      if (event.data === YT.PlayerState.PLAYING) {
+        // Fade-in the container frame with smooth transit
+        document.getElementById('youtube-bg-player').style.opacity = "0.75"; // Muted opacity for perfect background balance
+        document.getElementById('player-status-tag').textContent = "CINEMATIC STREAM RUNNING";
+      }
+      
+      // Fallback True Infinite loop strategy
+      if (event.data === YT.PlayerState.ENDED) {
+        player.playVideo();
+      }
+    }
+
+    // 5. Audio Toggle Feature (Instantly mutes/unmutes the video background channel on command)
+    var isMuted = true;
+    function toggleAudio() {
+      if (!player) return;
+      
+      var btn = document.getElementById('audio-toggle-btn');
+      if (isMuted) {
+        player.unMute();
+        isMuted = false;
+        btn.querySelector('span').textContent = "🔊 AUDIO ON";
+        btn.classList.add('border-teal-500', 'bg-teal-500/10');
+      } else {
+        player.mute();
+        isMuted = true;
+        btn.querySelector('span').textContent = "🔇 AUDIO OFF";
+        btn.classList.remove('border-teal-500', 'bg-teal-500/10');
+      }
+    }
+
+    /* 
+      ========================================================================
+      DIRECTIONS FOR ROBUST INITIAL EXPERIMENTAL PLAYBACK:
+      Modern browsers lock silent autoplays if user interactivity didn't trigger.
+      The code below hooks multiple mouse/touch motion vectors to activate playback instantly!
+      ========================================================================
+    */
+    function forceActivePlayback() {
+      if (player && typeof player.getPlayerState === 'function') {
+        var state = player.getPlayerState();
+        // If player is not actively running (0: ended, 2: paused, 3: buffering, 5: cued)
+        if (state !== 1 && state !== 3) {
+          player.playVideo();
+        }
+      }
+    }
+
+    // Bind multiple touch/interaction vectors across viewport triggers
+    document.addEventListener('mousemove', forceActivePlayback);
+    document.addEventListener('click', forceActivePlayback);
+    document.addEventListener('keydown', forceActivePlayback);
+    document.addEventListener('touchstart', forceActivePlayback);
+    document.addEventListener('scroll', forceActivePlayback);
+  </script>
+
+</body>
+</html>
