@@ -1,8 +1,5 @@
 {
-  "env": {
-    "NODE_ENV": "production"
-  },
-  "buildCommand": "npm run build",
+  "buildCommand": "npx vite build",
   "outputDirectory": "dist",
   "rewrites": [
     { "source": "/(.*)", "destination": "/index.html" }
