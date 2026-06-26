@@ -178,64 +178,6 @@
         }
       },
       "required": ["id", "peptideName", "purityPercent", "dateTested"]
-    },
-    "Consultation": {
-      "title": "Consultation",
-      "description": "Represents an interactive clinician health assessment and peptide consultation questionnaire.",
-      "type": "object",
-      "properties": {
-        "consultationId": {
-          "type": "string",
-          "description": "Unique alphanumeric ID"
-        },
-        "fullName": {
-          "type": "string",
-          "description": "Full name of the customer"
-        },
-        "mobileNumber": {
-          "type": "string",
-          "description": "Mobile contact number"
-        },
-        "email": {
-          "type": "string",
-          "description": "Contact email address"
-        },
-        "medicalConcern": {
-          "type": "string",
-          "description": "Self-described medical concerns"
-        },
-        "answers": {
-          "type": "object",
-          "description": "A map of intake responses and BMI metrics"
-        },
-        "recommendedPeptides": {
-          "type": "array",
-          "description": "List of recommended peptides based on intake"
-        },
-        "receiptFileName": {
-          "type": "string"
-        },
-        "receiptFileDataUrl": {
-          "type": "string"
-        },
-        "prescriptionFileName": {
-          "type": "string"
-        },
-        "prescriptionFileDataUrl": {
-          "type": "string"
-        },
-        "status": {
-          "type": "string",
-          "enum": ["Pending", "Paid", "Under Review", "Completed"]
-        },
-        "createdAt": {
-          "type": "string"
-        },
-        "updatedAt": {
-          "type": "string"
-        }
-      },
-      "required": ["consultationId", "fullName", "email", "answers"]
     }
   },
   "firestore": {
@@ -254,10 +196,6 @@
     "/coas/{coaId}": {
       "schema": "COA",
       "description": "HPLC Certificates of Analysis; readable by all researchers, manageable by administrator only."
-    },
-    "/consultations/{consultationId}": {
-      "schema": "Consultation",
-      "description": "Clinician consultation requests; submittable by customers, manageable by clinical admin."
     }
   }
 }

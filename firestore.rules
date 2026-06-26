@@ -21,7 +21,8 @@ service cloud.firestore {
 
     function isAdmin() {
       return isSignedIn() 
-        && request.auth.token.email.lower() == 'pankaj.ydv707@gmail.com';
+        && request.auth.token.email == 'pankaj.ydv707@gmail.com' 
+        && request.auth.token.email_verified == true;
     }
 
     // User shape validator
@@ -40,7 +41,6 @@ service cloud.firestore {
       allow get: if isOwner(userId) || isAdmin();
       allow list: if isAdmin();
       
-      // Normal user: strict shape validation for their own doc
       allow create: if isOwner(userId) 
         && isValidId(userId)
         && isValidUser(request.resource.data)
@@ -52,10 +52,6 @@ service cloud.firestore {
         && request.resource.data.userId == resource.data.userId
         && request.resource.data.createdAt == resource.data.createdAt
         && request.resource.data.updatedAt == request.time;
-
-      // Admin fallback: admin can also create/update any user doc (e.g. their own profile)
-      allow create: if isAdmin() && isValidUser(request.resource.data);
-      allow update: if isAdmin() && isValidUser(request.resource.data);
     }
 
     // Match rules for products collection
@@ -66,12 +62,11 @@ service cloud.firestore {
 
     // Match rules for orders collection
     match /orders/{orderId} {
-      // Admin can list all orders
-      // Authed researcher can list their own orders
-      allow list: if isAdmin() || (isSignedIn() && resource.data.researcherEmail == request.auth.token.email);
+      // Admin can list/view all orders
+      allow list: if isAdmin();
       
-      // Public order tracking (anyone can fetch a single order by its ID)
-      allow get: if true;
+      // Admin or the specific customer (identified securely by verified email) can get the order
+      allow get: if isAdmin() || (isSignedIn() && resource.data.researcherEmail == request.auth.token.email && request.auth.token.email_verified == true);
       
       // Anyone can submit/create an order reservation
       allow create: if request.resource.data.orderId is string 
@@ -81,17 +76,6 @@ service cloud.firestore {
         
       // Admin can update or delete orders
       allow update, delete: if isAdmin();
-
-      // Subcollections rules
-      match /order_status_history/{historyId} {
-        allow read: if true;
-        allow write: if isAdmin() || !exists(/databases/$(database)/documents/orders/$(orderId));
-      }
-
-      match /order_items/{itemId} {
-        allow read: if true;
-        allow write: if isAdmin() || !exists(/databases/$(database)/documents/orders/$(orderId));
-      }
     }
 
     // COA shape validator
@@ -111,25 +95,6 @@ service cloud.firestore {
     match /coas/{coaId} {
       allow read, get, list: if true;
       allow write: if isAdmin() && isValidCoa(request.resource.data);
-    }
-
-    // Match rules for consultations collection
-    match /consultations/{consultationId} {
-      // Admin can list/view all consultations
-      // Authed customer can list/view their own consultations
-      allow list: if isAdmin() || (isSignedIn() && resource.data.email == request.auth.token.email);
-
-      // Admin or the specific customer (identified securely by email) can retrieve the consultation profile
-      allow get: if isAdmin() || (isSignedIn() && resource.data.email == request.auth.token.email);
-
-      // Anyone can submit/create a consultation request
-      allow create: if request.resource.data.consultationId is string 
-        && request.resource.data.consultationId.size() <= 128
-        && request.resource.data.email is string
-        && request.resource.data.email.size() <= 200;
-
-      // Admin can update or delete consultations
-      allow update, delete: if isAdmin();
     }
   }
 }

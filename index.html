@@ -1,33 +1,25 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" class="dark">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
-    <title>Dose of Forever — Premium Research Peptides Philippines</title>
-    
-    <!-- Always boot in light theme by default -->
-    <script>
-      try {
-        localStorage.removeItem('theme');
-      } catch (e) {}
-      document.documentElement.classList.remove('dark');
-    </script>
+    <title>peptalk.ph | Premium Research Peptides & Essentials</title>
     
     <!-- Premium SEO & Meta Tags -->
-    <meta name="description" content="Scientific-grade premium research peptides in the Philippines. HPLC-certified, sterile-filtered, and vacuum-sealed for analytical excellence. Fast Local Lalamove & Grab Shipping." />
-    <meta name="keywords" content="peptides, research peptides, peptides philippines, BPC-157, Semaglutide, Retatrutide, GHK-Cu, NAD+, biohacking, HPLC certified" />
-    <meta name="author" content="Dose of Forever Laboratory" />
-    <meta name="theme-color" content="#f8fafc" />
+    <meta name="description" content="Scientific-grade premium research peptides & essentials in the Philippines. HPLC-certified, sterile-filtered, and vacuum-sealed for analytical excellence. Fast Local Lalamove & Grab Shipping. Strictly for laboratory research purposes only." />
+    <meta name="keywords" content="peptides, research peptides, peptides philippines, BPC-157, Semaglutide, Retatrutide, GHK-Cu, NAD+, biohacking, HPLC certified, peptalk, peptalk.ph" />
+    <meta name="author" content="peptalk.ph Laboratory" />
+    <meta name="theme-color" content="#f7f5f0" />
     
     <!-- Open Graph / Social Media Sharing -->
     <meta property="og:type" content="website" />
-    <meta property="og:title" content="Dose of Forever — Premium Research Peptides Philippines" />
+    <meta property="og:title" content="peptalk.ph | Premium Research Peptides & Essentials" />
     <meta property="og:description" content="HPLC-certified, medical-grade research standard peptides. Reconstitution-ready, sterile-filtered, vacuum-sealed vials for laboratory research." />
-    <meta property="og:site_name" content="Dose of Forever" />
-    <meta property="og:url" content="https://peptide.ph" />
+    <meta property="og:site_name" content="peptalk.ph" />
+    <meta property="og:url" content="https://peptalkph.com" />
     
     <!-- Modern Favicon -->
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%230d9488' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M10 2v7.31M14 2v7.31v0M4 22h16M10 9.3a1.5 1.5 0 1 0 4 0M14 9.32a6.32 6.32 0 0 1 5.37 5.9C19.74 18.6 17.5 22 12 22S4.26 18.6 4.63 15.22a6.32 6.32 0 0 1 5.37-5.92'/%3E%3C/svg%3E" />
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%237a223e' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M10 2v7.31M14 2v7.31v0M4 22h16M10 9.3a1.5 1.5 0 1 0 4 0M14 9.32a6.32 6.32 0 0 1 5.37 5.9C19.74 18.6 17.5 22 12 22S4.26 18.6 4.63 15.22a6.32 6.32 0 0 1 5.37-5.92'/%3E%3C/svg%3E" />
 
     <!-- Google Font Imports -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -36,23 +28,15 @@
     <!-- Critical CSS for Instant App Boot Preloader -->
     <style>
       :root {
-        --bg-color: #f8fafc;
-        --text-color: #0f172a;
-        --teal-primary: #0d9488;
-        --loader-bg: #e2e8f0;
-        --preloader-bg: #f8fafc;
-      }
-      .dark {
-        --bg-color: #0f172a;
-        --text-color: #f8fafc;
-        --loader-bg: #1e293b;
-        --preloader-bg: #0f172a;
+        --dark-bg: #f7f5f0;
+        --burgundy-primary: #7a223e;
+        --burgundy-glow: rgba(122, 34, 62, 0.25);
       }
       html, body {
         margin: 0;
         padding: 0;
-        background-color: var(--bg-color);
-        color: var(--text-color);
+        background-color: var(--dark-bg);
+        color: #292d35;
         font-family: 'Inter', system-ui, -apple-system, sans-serif;
         height: 100%;
         overflow-x: hidden;
@@ -63,7 +47,7 @@
         left: 0;
         width: 100%;
         height: 100%;
-        background-color: var(--preloader-bg);
+        background-color: #f7f5f0;
         display: flex;
         flex-direction: column;
         justify-content: center;
@@ -79,14 +63,14 @@
         animation: float 2.5s ease-in-out infinite;
       }
       .flask-svg {
-        stroke: var(--teal-primary);
-        filter: drop-shadow(0 0 8px var(--teal-primary));
+        stroke: var(--burgundy-primary);
+        filter: drop-shadow(0 0 8px var(--burgundy-primary));
         animation: pulse 1.5s ease-in-out infinite alternate;
       }
       .loader-bar-wrap {
         width: 140px;
         height: 3px;
-        background: var(--loader-bg);
+        background: #e2e8f0;
         border-radius: 99px;
         overflow: hidden;
         position: relative;
@@ -95,17 +79,17 @@
       .loader-bar-fill {
         height: 100%;
         width: 50%;
-        background: linear-gradient(90deg, #0d9488, #14b8a6, #0d9488);
+        background: linear-gradient(90deg, #7a223e, #b5496a, #7a223e);
         border-radius: 99px;
         animation: load-slide 1.5s infinite linear;
-        box-shadow: 0 0 6px #14b8a6;
+        box-shadow: 0 0 6px #b5496a;
       }
       .loading-text {
         font-family: monospace;
         font-size: 10px;
         text-transform: uppercase;
         letter-spacing: 0.2em;
-        color: #94a3b8;
+        color: #718096;
         opacity: 0.8;
       }
       @keyframes float {
@@ -113,8 +97,8 @@
         50% { transform: translateY(-8px) rotate(2deg); }
       }
       @keyframes pulse {
-        from { opacity: 0.8; filter: drop-shadow(0 0 4px var(--teal-primary)); }
-        to { opacity: 1; filter: drop-shadow(0 0 12px #14b8a6); }
+        from { opacity: 0.8; filter: drop-shadow(0 0 4px var(--burgundy-primary)); }
+        to { opacity: 1; filter: drop-shadow(0 0 12px #b5496a); }
       }
       @keyframes load-slide {
         0% { left: -50%; }
@@ -132,12 +116,12 @@
           <path d="M4 22h16" />
           <path d="M10 9.3a1.5 1.5 0 1 0 4 0" />
           <path d="M14 9.32a6.32 6.32 0 0 1 5.37 5.9C19.74 18.6 17.5 22 12 22S4.26 18.6 4.63 15.22a6.32 6.32 0 0 1 5.37-5.92" />
-          <circle cx="9" cy="15" r="1" fill="#0d9488" opacity="0.6" />
-          <circle cx="15" cy="18" r="1.5" fill="#0d9488" opacity="0.6" />
-          <circle cx="11" cy="19" r="1" fill="#0d9488" opacity="0.6" />
+          <circle cx="9" cy="15" r="1" fill="#7a223e" opacity="0.6" />
+          <circle cx="15" cy="18" r="1.5" fill="#7a223e" opacity="0.6" />
+          <circle cx="11" cy="19" r="1" fill="#7a223e" opacity="0.6" />
         </svg>
       </div>
-      <div class="loading-text">Dose of Forever Console</div>
+      <div class="loading-text">peptalk.ph Console</div>
       <div class="loader-bar-wrap">
         <div class="loader-bar-fill"></div>
       </div>
